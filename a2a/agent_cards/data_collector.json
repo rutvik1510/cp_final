@@ -1,0 +1,22 @@
+{
+  "name": "property_data_collector",
+  "description": "Collects property, hazard, and location data for underwriting.",
+  "url": "http://localhost:8002",
+  "version": "1.0.0",
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "property-data-collection",
+      "name": "Property Data Collection",
+      "description": "Gathers property characteristics, hazard data, and location context given an address",
+      "tags": ["property", "data-collection"],
+      "inputModes": ["text"],
+      "outputModes": ["text"]
+    }
+  ]
+}

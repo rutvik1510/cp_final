@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL support
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Application logs
+*.log
+logs/
+
+# ADK and local agent artifacts
+.adk/
+
+# Editor/OS settings
+.DS_Store
+.tabnine/
+.windsurf/
+.vscode/
+.idea/
+.project
+.pydevproject
+.settings/
+
+# npm/node_modules if any exist
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

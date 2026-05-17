@@ -1,0 +1,22 @@
+{
+  "name": "report_generator_agent",
+  "description": "Generates final commercial property underwriting markdown report.",
+  "url": "http://localhost:8004",
+  "version": "1.0.0",
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "report-generation",
+      "name": "Underwriting Report Generation",
+      "description": "Formats property and risk data into a final comprehensive underwriting markdown report",
+      "tags": ["report", "generation"],
+      "inputModes": ["text"],
+      "outputModes": ["text"]
+    }
+  ]
+}

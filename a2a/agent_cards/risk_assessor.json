@@ -1,0 +1,22 @@
+{
+  "name": "risk_assessment_agent",
+  "description": "Evaluates risk categories for commercial properties in parallel.",
+  "url": "http://localhost:8003",
+  "version": "1.0.0",
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "risk-assessment",
+      "name": "Commercial Property Risk Assessment",
+      "description": "Parallel risk evaluation across fire, NatCat, occupancy, and building factors",
+      "tags": ["risk", "assessment"],
+      "inputModes": ["text"],
+      "outputModes": ["text"]
+    }
+  ]
+}

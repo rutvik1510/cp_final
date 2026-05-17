@@ -1,0 +1,19 @@
+{
+  "name": "underwriting_orchestrator",
+  "description": "Commercial property underwriting assistant. Coordinates risk assessment workflow.",
+  "url": "http://localhost:8001",
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false
+  },
+  "skills": [
+    {
+      "id": "property-underwriting",
+      "name": "Commercial Property Underwriting",
+      "description": "Evaluates commercial property risk through conversational interaction",
+      "inputModes": ["text"],
+      "outputModes": ["text"]
+    }
+  ]
+}

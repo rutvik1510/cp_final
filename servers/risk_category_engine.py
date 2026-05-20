@@ -8,6 +8,11 @@ import re
 from typing import Any
 
 from google.genai import Client
+from prompt_manager.manager import PromptManager
+from prompt_manager.templates import risk_assessor
+
+pm = PromptManager()
+risk_assessor.register_all(pm)
 
 MODEL_ID = "gemini-2.5-flash"
 
@@ -40,37 +45,49 @@ def _parse_json_object(text: str) -> dict[str, Any] | None:
         return None
 
 
-def _category_prompt(category: str, property_json: str) -> str:
-    common = (
-        f"You assess ONLY the **{category}** risk for commercial property underwriting.\n"
-        f"Property JSON:\n{property_json}\n\n"
-        "Return STRICT JSON only (no markdown fences), one object with keys:\n"
-        '{"category": "<id>", "score": <1-10 int>, "grade": "<LOW|MEDIUM|HIGH|VERY HIGH>", '
-        '"key_risk_factors": ["<=3 short"], "mitigating_factors": ["<=3 short"], '
-        '"recommendations": ["<=2 short"], "reasoning": "<=2 sentences>"}\n'
-    )
-    guides = {
-        "fire": (
-            "Focus: construction_type, construction_class, sprinkler_status, fire_alarm, "
-            "fire_protection_class. ISO Class 1=frame highest risk; wet sprinklers + alarm mitigate."
-        ),
-        "natural_catastrophe": (
-            "Focus: flood_zone, earthquake_zone, wildfire_risk, windstorm_zone. "
-            "Flood AE/VE higher; X lower."
-        ),
-        "occupancy": (
-            "Focus: business_type, hazardous_materials, operates_24_7. "
-            "Manufacturing + hazmat higher; office lower."
-        ),
-        "building": (
-            "Focus: year_built, year_renovated, roof_age_years. Old + no renovation higher."
-        ),
+def _category_prompt(category: str, property_data: dict[str, Any]) -> str:
+    vars_dict = {"address": "unknown"}
+    if isinstance(property_data.get("address"), dict):
+        vars_dict["address"] = property_data["address"].get("street", "unknown")
+    elif isinstance(property_data.get("address"), str):
+        vars_dict["address"] = property_data["address"]
+        
+    chars = property_data.get("characteristics", {})
+    vars_dict["construction_type"] = chars.get("construction_type", "unknown")
+    vars_dict["construction_class"] = chars.get("construction_class", "unknown")
+    vars_dict["sprinkler_status"] = chars.get("sprinkler_status", "unknown")
+    vars_dict["alarm_status"] = chars.get("alarm_status", "unknown")
+    vars_dict["fire_protection_class"] = chars.get("fire_protection_class", "unknown")
+    
+    loc = property_data.get("location_context", {})
+    vars_dict["flood_zone"] = loc.get("flood_zone", "unknown")
+    vars_dict["earthquake_zone"] = loc.get("earthquake_zone", "unknown")
+    vars_dict["wildfire_risk"] = loc.get("wildfire_risk", "unknown")
+    vars_dict["windstorm_zone"] = loc.get("windstorm_zone", "unknown")
+    
+    occ = property_data.get("occupancy", {})
+    vars_dict["business_type"] = occ.get("business_type", "unknown")
+    vars_dict["occupancy_description"] = occ.get("occupancy_description", "unknown")
+    vars_dict["hazardous_materials"] = occ.get("hazardous_materials", "unknown")
+    vars_dict["operates_24_7"] = occ.get("operates_24_7", "unknown")
+    
+    vars_dict["year_built"] = chars.get("year_built", "unknown")
+    vars_dict["year_renovated"] = chars.get("year_renovated", "unknown")
+    vars_dict["roof_age_years"] = chars.get("roof_age_years", "unknown")
+    vars_dict["systems_update_year"] = chars.get("systems_update_year", "unknown")
+
+    template_name_map = {
+        "fire": "fire_risk_cot",
+        "natural_catastrophe": "natcat_risk_cot",
+        "occupancy": "occupancy_risk_cot",
+        "building": "building_risk_cot"
     }
-    return common + guides[category] + f'\nUse "category": "{category}".'
+    t_name = template_name_map[category]
+    return pm.get_prompt("risk_assessor", t_name, variables=vars_dict)
 
 
 async def _evaluate_category(client: Client, category: str, property_data: dict[str, Any]) -> dict[str, Any]:
-    prompt = _category_prompt(category, json.dumps(property_data))
+    prompt = _category_prompt(category, property_data)
     resp = await client.aio.models.generate_content(model=MODEL_ID, contents=prompt)
     text = getattr(resp, "text", None) or ""
     if not text and getattr(resp, "candidates", None):

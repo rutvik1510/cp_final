@@ -9,28 +9,12 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from user_profile.profile_store import UserProfileStore
-from telemetry.arize_setup import get_arize_tracer
 
-tracer = get_arize_tracer("underwriting-agents")
 
 # Calculate path to agent cards
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CARDS_DIR = os.path.join(BASE_DIR, "a2a", "agent_cards")
 
-class TracedAgentTool(AgentTool):
-    """Wraps ADK's AgentTool to emit manual Arize spans for each delegation."""
-    async def run_async(self, *, args: dict[str, Any], tool_context: ToolContext) -> Any:
-        with tracer.start_as_current_span(f"a2a:{self.agent.name}") as span:
-            span.set_attribute("openinference.span.kind", "AGENT")
-            span.set_attribute("agent.name", self.agent.name)
-            span.set_attribute("input.value", json.dumps(args))
-            try:
-                result = await super().run_async(args=args, tool_context=tool_context)
-                span.set_attribute("output.value", str(result)[:2000])
-                return result
-            except Exception as e:
-                span.record_exception(e)
-                raise
 
 
 class OrchestratorAgent(Agent):
@@ -61,9 +45,9 @@ class OrchestratorAgent(Agent):
             instruction=system_instruction,
             tools=[
                 self.manage_user_profile,
-                TracedAgentTool(agent=data_collector),
-                TracedAgentTool(agent=risk_assessor),
-                TracedAgentTool(agent=report_generator),
+                AgentTool(agent=data_collector),
+                AgentTool(agent=risk_assessor),
+                AgentTool(agent=report_generator),
             ],
             **kwargs,
         )
@@ -80,10 +64,13 @@ class OrchestratorAgent(Agent):
         specialization: str = "",
         preferred_format: str = "narrative",
     ) -> str:
+        from tracing import get_tracer
+        tracer = get_tracer("orchestrator-tracer")
         with tracer.start_as_current_span("manage_user_profile") as span:
             span.set_attribute("openinference.span.kind", "TOOL")
-            span.set_attribute("input.value", json.dumps({"action": action, "user_id": user_id}))
-
+            span.set_attribute("input.value", json.dumps({"action": action, "user_id": user_id, "experience_level": experience_level}))
+            
+            span.set_attribute("user.id", user_id)
             if action in ("get_or_create", "get"):
                 profile = self.profile_store.get_or_create(user_id)
             elif action == "update":
@@ -100,5 +87,6 @@ class OrchestratorAgent(Agent):
                 profile = self.profile_store.get_or_create(user_id)
 
             result = json.dumps(profile)
+            span.set_attribute("profile.experience_level", profile.get("experience_level", "unknown"))
             span.set_attribute("output.value", result)
             return result

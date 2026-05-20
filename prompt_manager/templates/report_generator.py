@@ -81,17 +81,18 @@ more likely than average and could result in significant property loss.
 Use the data below to generate a complete underwriting report.
 
 **User Profile:**
-{user_profile}
+[user_profile provided in conversation]
 
 **Property Data:**
-{property_data}
+[property_data provided in conversation]
 
 **Risk Assessment Results:**
-{risk_assessment}
+[risk_assessment provided in conversation]
 
 Generate the full Markdown report following the appropriate format for the user's
 experience level. Include all risk categories, premium recommendation, key concerns,
 and underwriting recommendations. Do not truncate or summarize — produce the complete report.
+IMPORTANT: You MUST use Markdown headers (e.g., #, ##, ###) for all sections and subsections. Do not output plain text headers.
 """
 
 

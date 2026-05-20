@@ -13,10 +13,8 @@ if root_path not in sys.path:
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-# ── Step 2: Initialize Arize OTel tracing BEFORE any ADK imports ──────────────
-from telemetry.arize_setup import init_arize_tracing
-init_arize_tracing()
-
+from tracing import setup_tracing, get_tracer
+setup_tracing(project_name="commercial-property-underwriting-orchestrator")
 # ── Step 3: Build the Orchestrator ─────────────────────────────────────────────
 from agents.orchestrator import OrchestratorAgent
 from prompt_manager.manager import PromptManager

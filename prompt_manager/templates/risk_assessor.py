@@ -14,6 +14,9 @@ Note: servers/risk_assessor_server.py uses a combined instruction inline.
 These per-category templates document the individual CoT reasoning chain.
 """
 
+# ── Risk Assessor Agent Instruction ─────────────────────────────────────────────
+RISK_ASSESSOR_AGENT_INSTRUCTION = """You are the Risk Assessment A2A agent. Call `execute_parallel_risk_assessment` exactly once per user task. Do not score risks yourself. After the tool returns, one short confirmation sentence."""
+
 # ── Fire Risk ─────────────────────────────────────────────────────────────────
 FIRE_RISK_COT = """
 You are an expert commercial property fire risk assessor.
@@ -102,7 +105,8 @@ Return ONLY this JSON (no markdown fences):
 
 
 def register_all(manager):
-    """Register all 4 risk assessor CoT templates with the PromptManager."""
+    """Register all risk assessor templates with the PromptManager."""
+    manager.register("risk_assessor", "agent_instruction",  "v1", RISK_ASSESSOR_AGENT_INSTRUCTION)
     manager.register("risk_assessor", "fire_risk_cot",      "v1", FIRE_RISK_COT)
     manager.register("risk_assessor", "natcat_risk_cot",    "v1", NATCAT_RISK_COT)
     manager.register("risk_assessor", "occupancy_risk_cot", "v1", OCCUPANCY_RISK_COT)
